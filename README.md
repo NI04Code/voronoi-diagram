@@ -8,3 +8,7 @@
 **Deskripsi:**   
 Implementasikan algoritma Fortune untuk membuat diagram Voronoi untuk titik-titik pada
 bidang yang dibatasi sebuah bounding-box yang sesuai
+
+
+Referensi StdDraw
+- https://introcs.cs.princeton.edu/java/stdlib/StdDraw.java.html 
