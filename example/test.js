@@ -1,14 +1,4 @@
-let points = [
-    new Point(146,180.125),
-    new Point(235,200.125),
-    new Point(215,68.125),
-    new Point(152,110.125),
-    new Point(192,110.125),
-    new Point(160,30.125),
-    new Point(140,86.125),
-    new Point(450,200.125)
-
-];
+let points = [];
 
 let vor, gr, _svg_; 
 
@@ -17,13 +7,13 @@ let vor, gr, _svg_;
 
     vor = new VoronoiDiagram(points, _svg_.width.baseVal.value, _svg_.height.baseVal.value);    
     gr = new SVG_Graphics(_svg_);
-    vor.update();
 
     gr.draw(points,vor.voronoi_vertex,vor.edges);
 
     document.getElementById("voronoi_svg").onclick = addPoint;
 	document.getElementById("reset-btn").onclick = reset;
 	document.getElementById("generate-btn").onclick = generate;
+    document.getElementById("txt-btn").onclick = addPointFromTxt;
 })();
 
 
@@ -33,6 +23,47 @@ function reset() {
     _svg_.textContent = '';
 
 };
+
+function addPointFromTxt() {
+    const fileInput = document.getElementById("txt-input");
+    const file = fileInput.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const fileContent = event.target.result;  // File content as a string
+            parseText(fileContent);  // Parse the points from the file content
+            vor.point_list = points;
+            let t0 = performance.now();
+            vor.update();
+            let t1 = performance.now();
+
+            gr.draw(points,vor.voronoi_vertex,vor.edges);
+            document.getElementById("timer").innerText = (t1 - t0).toFixed(2) + " ms";
+        };
+
+        // Read the file as text
+        reader.readAsText(file);
+    } else {
+        alert('Please select a file first.');
+    }
+}
+
+function parseText(fileContent) {
+    points = [];
+    const lines = fileContent.split('\n');
+    lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine) {
+            // Split each line by comma and parse the coordinates
+            const [x, y] = trimmedLine.split(',').map(Number);
+            if (!isNaN(x) && !isNaN(y)) {
+                points.push(new Point(x,y));
+            }
+        }
+    });
+    console.log(points)
+}
 
 function addPoint(event) {
     let x = event.offsetX;
