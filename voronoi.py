@@ -49,7 +49,8 @@ class Arc:
         self.edge = {'left': edge_left, 'right': edge_right}
         self.event = None
 
-class SortedQueue:
+# Priority Queue untuk menyimpan event
+class PriorityQueue:
     def __init__(self, events=None):
         self.list = events if events else []
         self.sort()
@@ -86,14 +87,15 @@ class VoronoiDiagram:
         self.box_y = height
         self.maxCircle = {'x': [], 'y': [], 'radius': 0}
 
+    # Reset voronoi diagram
     def reset(self):
-        self.event_list = SortedQueue()
+        self.event_list = PriorityQueue()
         self.beachline_root = None
         self.voronoi_vertex = []
         self.edges = []
         self.maxCircle = {'x': [], 'y': [], 'radius': 0}
         
-    # Builds the Voronoi diagram computing the Voroni vertices and edges
+    # Update voronoi diagram when adding new point
     def update(self):
         self.reset()
         points = [Event("point", p) for p in self.point_list]
@@ -102,15 +104,15 @@ class VoronoiDiagram:
         while len(self.event_list) > 0:
             e = self.event_list.extract_first()
             if e.type == "point":
-                self.point_event(e.position)
+                self.site_event(e.position)
             elif e.active:
                 self.circle_event(e)
         if e:
             self.complete_segments(e.position)
     
-    # Handles a new point event with point p
-    # Parameters: p - the point
-    def point_event(self, p):
+    # Handles a site event of new point p
+    # Parameters: p - Point
+    def site_event(self, p):
         q = self.beachline_root
         if q is None:
             self.beachline_root = Arc(None, None, p, None, None)
@@ -154,7 +156,7 @@ class VoronoiDiagram:
         self.edges.append(edge_new)
         
         if not self.point_outside(e.vertex): # Only add vertex if it is inside the canvas
-            self.voronoi_vertex.append(e.vertex) # This needs to come before add_circle_event as it is used there
+            self.voronoi_vertex.append(e.vertex)
             
         edge_new.start = e.vertex
         arc.edge['left'].end = e.vertex
@@ -468,3 +470,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#Credit to https://www.bitbanging.space/posts/voronoi-diagram-with-fortunes-algorithm for showing us the algorithm step by step.
