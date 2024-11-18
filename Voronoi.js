@@ -10,6 +10,11 @@ class VoronoiDiagram {
 		this.reset();
 		this.box_x = width;
 		this.box_y = height;
+		this.maxCircle = {
+            x: [],
+            y: [],
+            radius: 0
+        }
 	}
 
 	reset() {
@@ -17,6 +22,11 @@ class VoronoiDiagram {
 		this.beachline_root = null;
 		this.voronoi_vertex = [];
 		this.edges = [];
+		this.maxCircle = {
+            x: [],
+            y: [],
+            radius: 0
+		}
 	}
 
 	/**
@@ -102,6 +112,42 @@ class VoronoiDiagram {
 
 		this.add_circle_event(p, arc.left);
 		this.add_circle_event(p, arc.right);
+
+		let circle_radius = Number.MAX_SAFE_INTEGER
+
+		if (arc.left.left && arc.left.right) {
+            const focus = arc.left.focus
+
+            let circle_radius_left = Math.sqrt(
+                (e.vertex.x - focus.x) ** 2 +
+                    (e.vertex.y - focus.y) ** 2
+            );
+
+            circle_radius = Math.min(circle_radius, circle_radius_left)
+        }
+
+        if (arc.right.left && arc.right.right) {
+            const focus = arc.right.focus
+
+            let circle_radius_right = Math.sqrt(
+                (e.vertex.x - focus.x) ** 2 +
+                    (e.vertex.y - focus.y) ** 2
+            );
+
+            circle_radius = Math.min(circle_radius, circle_radius_right)
+        }
+
+        if (this.maxCircle.radius === circle_radius){
+            this.maxCircle.x.push(e.vertex.x)
+            this.maxCircle.y.push(e.vertex.y)
+        }
+        else if (this.maxCircle.radius < circle_radius){
+            this.maxCircle.x = []
+            this.maxCircle.y = []
+            this.maxCircle.x.push(e.vertex.x)
+            this.maxCircle.y.push(e.vertex.y)
+            this.maxCircle.radius = circle_radius
+        }
 	}
 
 	/**

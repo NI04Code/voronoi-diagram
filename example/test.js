@@ -8,7 +8,7 @@ let vor, gr, _svg_;
     vor = new VoronoiDiagram(points, _svg_.width.baseVal.value, _svg_.height.baseVal.value);    
     gr = new SVG_Graphics(_svg_);
 
-    gr.draw(points,vor.voronoi_vertex,vor.edges);
+    gr.draw(points,vor.voronoi_vertex,vor.edges, vor.maxCircle);
 
     document.getElementById("voronoi_svg").onclick = addPoint;
 	document.getElementById("reset-btn").onclick = reset;
@@ -38,7 +38,7 @@ function addPointFromTxt() {
             vor.update();
             let t1 = performance.now();
 
-            gr.draw(points,vor.voronoi_vertex,vor.edges);
+            gr.draw(points,vor.voronoi_vertex,vor.edges,vor.maxCircle);
             document.getElementById("timer").innerText = (t1 - t0).toFixed(2) + " ms";
         };
 
@@ -85,7 +85,7 @@ function addPoint(event) {
 
     let t1 = performance.now();
 
-    gr.draw(points,vor.voronoi_vertex,vor.edges);
+    gr.draw(points,vor.voronoi_vertex,vor.edges,vor.maxCircle);
 
     document.getElementById("timer").innerText= (t1 - t0).toFixed(2) + " ms";
 
@@ -102,7 +102,7 @@ function generate() {
     vor.update();
     let t1 = performance.now();
 
-    gr.draw(vor.point_list,vor.voronoi_vertex,vor.edges);
+    gr.draw(vor.point_list,vor.voronoi_vertex,vor.edges,vor.maxCircle);
     document.getElementById("timer").innerText = (t1 - t0).toFixed(2) + " ms";
 
     
