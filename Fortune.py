@@ -320,6 +320,7 @@ def main():
                 ax.set_xlim(0, width)
                 ax.set_ylim(0, height)
                 ax.set_aspect('equal', adjustable='box')
+                plt.title('Voronoi Diagram from File Input, click to add points')
 
                 # Plot the edges
                 if voronoi:
