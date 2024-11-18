@@ -302,9 +302,8 @@ def main():
             radius = voronoi.maxCircle['radius']
             circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
             ax.add_patch(circle)
-
-
-
+            
+        # Put event for point by mouse click    
         def on_click(event):
             if event.button == MouseButton.LEFT and event.inaxes:
                 x, y = event.xdata, event.ydata
@@ -345,9 +344,7 @@ def main():
 
         fig.canvas.mpl_connect('button_press_event', on_click)
         plt.show()
-
-        plt.show()
-
+        
     else:
         # No file input, accept points interactively
         point_list = []
@@ -402,7 +399,22 @@ def main():
                 ax.scatter(x_coords, y_coords, color='red')
 
                 plt.draw()
-
+        
+        #Put event for reset diagram
+        def on_reset(event):
+            point_list.clear()
+            ax.clear()
+            ax.set_xlim(0, width)
+            ax.set_ylim(0, height)
+            ax.set_aspect('equal', adjustable='box')
+            plt.title('Click to add points')
+            plt.draw()
+        
+        #Add reset button
+        resetax = plt.axes([0.8, 0.9, 0.1, 0.04])
+        reset_button = plt.Button(resetax, 'Reset', color='lightgoldenrodyellow', hovercolor='0.975')
+        reset_button.on_clicked(on_reset)
+        
         fig.canvas.mpl_connect('button_press_event', on_click)
         plt.show()
 
