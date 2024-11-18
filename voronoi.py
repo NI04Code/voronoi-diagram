@@ -18,6 +18,8 @@ class Edge:
         if denominator == 0:
             self.m = float('inf')
             self.q = None
+            self.x_const = (p1.x + p2.x) / 2
+
         else:
             self.m = -(p1.x - p2.x) / denominator
             self.q = (0.5 * (p1.x**2 - p2.x**2 + p1.y**2 - p2.y**2)) / denominator
@@ -25,8 +27,11 @@ class Edge:
         self.end = None
         self.start = None
         if startx is not None:
-            y_start = self.getY(startx)
-            self.start = Point(startx, y_start if y_start is not None else 0)
+            if self.m == float('inf'):
+                self.start = Point(self.x_const, 0)
+            else:
+                y_start = self.getY(startx)
+                self.start = Point(startx, y_start if y_start is not None else 0)
 
     def getY(self, x):
         if self.m == float('inf'):
@@ -259,9 +264,21 @@ class VoronoiDiagram:
                (e.start.x > self.box_x and x > e.start.x):
                 e.end = e.start # If invalid make start = end so it will be deleted later
             else:
-                if e.m == 0: # If edge is vertical and is connected to the beachline will end on the bottom border
+                if e.m == 0: # If edge is horizontal and is not connected to the beachline will end on the left border
                     x = 0 if x - e.start.x <= 0 else self.box_x
                     e.end = Point(x, e.start.y)
+                    self.voronoi_vertex.append(e.end)
+                elif e.m == float('inf'): # If edge is vertical and is not connected to the beachline will end on the top border
+                    # For vertical edges, x is constant, y varies
+                    # Determine if the edge goes upwards or downwards
+                    if e.end is not None:
+                        direction = e.end.y - e.start.y
+                    else:
+                        # If e.end is None, decide direction based on position
+                        direction = self.box_y - e.start.y
+
+                    y = self.box_y if direction > 0 else 0
+                    e.end = Point(e.start.x, y)
                     self.voronoi_vertex.append(e.end)
                 else:
                     y = self.box_y if e.m * (x - e.start.x) > 0 else 0
