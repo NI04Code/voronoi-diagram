@@ -22,9 +22,10 @@ public class Voronoi {
 
     public static void main(String[] args) {
         points = new ArrayList<Point>();
-        points.add(new Point(100, 100));
-        points.add(new Point(250, 200));
-        points.add(new Point(150, 250));
+        points.add(new Point(100, 400));
+        points.add(new Point(400, 400));
+        points.add(new Point(200, 300));
+
         Voronoi voronoi = new Voronoi(points);
 
         // Add List of beachline
@@ -217,8 +218,10 @@ public class Voronoi {
                 x += step;
                 if(isStartingPoint) {
                     p1.start = new Point(x, y1);
+                    // p1.end = new Point(intersect.x, intersect.y);
                 }
                 else {
+                    // p1.start = new Point(intersect.x, intersect.y);
                     p1.end = new Point(x, y1);
                 }
 
@@ -236,8 +239,10 @@ public class Voronoi {
                 x += step;
                 if(isStartingPoint) {
                     p2.start = new Point(x, y2);
+                    // p2.end = new Point(intersect.x, intersect.y);
                 }
                 else {
+                    // p2.start = new Point(intersect.x, intersect.y);
                     p2.end = new Point(x, y2);
                 }
       
@@ -256,11 +261,17 @@ public class Voronoi {
         // Calculate bisector between two foci
         double dx = p2.focus.x - p1.focus.x;
         double dy = p2.focus.y - p1.focus.y;
+        // if(dy == 0) {
+        //     dy = 1e-6;
+
+        // }
         double m = -dx / dy;
+
         isStartingPoint = true;
         Edge edge = null;
 
-        while(x <= maxX) {
+
+        while(x <= maxX && dy != 0) {
             double y = intersect.y + m * (x - intersect.x);
             if(y < 0 || y > 500) {
                 x += step;
@@ -293,6 +304,12 @@ public class Voronoi {
             StdDraw.setPenRadius(0.001);
             StdDraw.point(x, y);
             x += step;
+
+        }
+        if(dy == 0) {
+            // If the foci are in the same y-coordinate, then the edge is vertical
+            x = intersect.x;
+            edge = new Edge(new Point(x, intersect.y), new Point(x, 500));
 
         }
 
