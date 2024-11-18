@@ -256,8 +256,8 @@ class VoronoiDiagram:
         return p.x < 0 or p.x > self.box_x or p.y < 0 or p.y > self.box_y
 
 def main():
-    width = 300
-    height = 300
+    width = 600
+    height = 600
 
     point_list = []
 
@@ -281,7 +281,7 @@ def main():
         ax.set_xlim(0, width)
         ax.set_ylim(0, height)
         ax.set_aspect('equal', adjustable='box')
-        plt.title('Voronoi Diagram from File Input')
+        plt.title('Voronoi Diagram from File Input, click to add points')
 
         # Plot the edges
         for edge in voronoi.edges:
@@ -302,6 +302,50 @@ def main():
             radius = voronoi.maxCircle['radius']
             circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
             ax.add_patch(circle)
+
+
+
+        def on_click(event):
+            if event.button == MouseButton.LEFT and event.inaxes:
+                x, y = event.xdata, event.ydata
+                point_list.append(Point(x, y))
+
+                if len(point_list) >= 2:
+                    voronoi = VoronoiDiagram(point_list, width, height)
+                    voronoi.update()
+                else:
+                    voronoi = None
+
+                ax.clear()
+                ax.set_xlim(0, width)
+                ax.set_ylim(0, height)
+                ax.set_aspect('equal', adjustable='box')
+
+                # Plot the edges
+                if voronoi:
+                    for edge in voronoi.edges:
+                        if edge and edge.start and edge.end:
+                            x_values = [edge.start.x, edge.end.x]
+                            y_values = [edge.start.y, edge.end.y]
+                            ax.plot(x_values, y_values, 'k-')
+
+                    # Plot the largest empty circle
+                    if voronoi.maxCircle['x']:
+                        x_c = voronoi.maxCircle['x'][0]
+                        y_c = voronoi.maxCircle['y'][0]
+                        radius = voronoi.maxCircle['radius']
+                        circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
+                        ax.add_patch(circle)
+
+                # Plot the points
+                x_coords = [p.x for p in point_list]
+                y_coords = [p.y for p in point_list]
+                ax.scatter(x_coords, y_coords, color='red')
+
+                plt.draw()
+
+        fig.canvas.mpl_connect('button_press_event', on_click)
+        plt.show()
 
         plt.show()
 
