@@ -331,9 +331,11 @@ def main():
 
                     # Plot the largest empty circle
                     for x, y in zip(voronoi.maxCircle['x'], voronoi.maxCircle['y']):
-                        circle = plt.Circle((x, y), voronoi.maxCircle['radius'], color='blue', fill=False, linestyle='--')
-                        plt.gca().add_patch(circle)
-
+                        x_c = voronoi.maxCircle['x'][0]
+                        y_c = voronoi.maxCircle['y'][0]
+                        radius = voronoi.maxCircle['radius']
+                        circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
+                        ax.add_patch(circle)
 
                 # Plot the points
                 x_coords = [p.x for p in point_list]
@@ -383,15 +385,13 @@ def main():
                             ax.plot(x_values, y_values, 'k-')
 
                     # Plot the largest empty circle
-                    # if voronoi.maxCircle['x']:
-                    #     x_c = voronoi.maxCircle['x'][0]
-                    #     y_c = voronoi.maxCircle['y'][0]
-                    #     radius = voronoi.maxCircle['radius']
-                    #     circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
-                    #     ax.add_patch(circle)
                     for x, y in zip(voronoi.maxCircle['x'], voronoi.maxCircle['y']):
-                        circle = plt.Circle((x, y), voronoi.maxCircle['radius'], color='blue', fill=False, linestyle='--')
-                        plt.gca().add_patch(circle)
+                        x_c = voronoi.maxCircle['x'][0]
+                        y_c = voronoi.maxCircle['y'][0]
+                        radius = voronoi.maxCircle['radius']
+                        circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
+                        ax.add_patch(circle)
+
 
                 # Plot the points
                 x_coords = [p.x for p in point_list]
