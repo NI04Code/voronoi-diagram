@@ -318,7 +318,7 @@ def main():
         ax.set_xlim(0, width)
         ax.set_ylim(0, height)
         ax.set_aspect('equal', adjustable='box')
-        plt.title('Voronoi Diagram from File Input, click to add points')
+        plt.title('Voronoi Diagram from File Input, click to add points', loc = 'center')
 
         # Plot the edges
         for edge in voronoi.edges:
@@ -411,7 +411,7 @@ def main():
                 ax.set_xlim(0, width)
                 ax.set_ylim(0, height)
                 ax.set_aspect('equal', adjustable='box')
-                plt.title('Click to add points')
+                ax.set_title('Click to add points')
 
                 # Plot the edges
                 if voronoi:
@@ -444,7 +444,7 @@ def main():
             ax.set_xlim(0, width)
             ax.set_ylim(0, height)
             ax.set_aspect('equal', adjustable='box')
-            plt.title('Click to add points')
+            ax.set_title('Click to add points')
             plt.draw()
         
         #Add reset button
