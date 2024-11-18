@@ -293,8 +293,8 @@ class VoronoiDiagram:
         return p.x < 0 or p.x > self.box_x or p.y < 0 or p.y > self.box_y
 
 def main():
-    width = 600
-    height = 800
+    width = 550
+    height = 350
 
     point_list = []
 
@@ -307,9 +307,6 @@ def main():
                 x, y = float(x_str), float(y_str)
                 point_list.append(Point(x, y))
 
-        if len(point_list) < 2:
-            print("Need at least two points to compute Voronoi diagram.")
-            return
 
         voronoi = VoronoiDiagram(point_list, width, height)
         voronoi.update()
@@ -318,7 +315,7 @@ def main():
         ax.set_xlim(0, width)
         ax.set_ylim(0, height)
         ax.set_aspect('equal', adjustable='box')
-        plt.title('Voronoi Diagram from File Input, click to add points', loc = 'center')
+        plt.title('Click to add points', loc = 'center')
 
         # Plot the edges
         for edge in voronoi.edges:
@@ -356,7 +353,7 @@ def main():
                 ax.set_xlim(0, width)
                 ax.set_ylim(0, height)
                 ax.set_aspect('equal', adjustable='box')
-                plt.title('Voronoi Diagram from File Input, click to add points')
+                ax.set_title('Click to add points')
 
                 # Plot the edges
                 if voronoi:
@@ -380,8 +377,23 @@ def main():
                 ax.scatter(x_coords, y_coords, color='red')
 
                 plt.draw()
-
+        
+        #Put event for reset diagram
+        def on_reset(event):
+            point_list.clear()
+            ax.clear()
+            ax.set_xlim(0, width)
+            ax.set_ylim(0, height)
+            ax.set_aspect('equal', adjustable='box')
+            ax.set_title('Click to add points')
+            plt.draw()
+        
+        #Add reset button
+        resetax = plt.axes([0.8, 0.9, 0.1, 0.04])
+        reset_button = plt.Button(resetax, 'Reset', color='lightgoldenrodyellow', hovercolor='0.975')
+        reset_button.on_clicked(on_reset)
         fig.canvas.mpl_connect('button_press_event', on_click)
+
         plt.show()
         
     else:
