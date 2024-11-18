@@ -2,6 +2,11 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
 
+#Kelompok 10
+#Naufal Ichsan - 2206082013
+#Muhammad Nanda Pratama - 2206081654
+#Arya Lesmana - 2206081603
+
 class Point:
     def __init__(self, x, y):
         self.x = x
