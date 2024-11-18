@@ -92,7 +92,8 @@ class VoronoiDiagram:
         self.voronoi_vertex = []
         self.edges = []
         self.maxCircle = {'x': [], 'y': [], 'radius': 0}
-
+        
+    # Builds the Voronoi diagram computing the Voroni vertices and edges
     def update(self):
         self.reset()
         points = [Event("point", p) for p in self.point_list]
@@ -106,14 +107,17 @@ class VoronoiDiagram:
                 self.circle_event(e)
         if e:
             self.complete_segments(e.position)
-
+    
+    # Handles a new point event with point p
+    # Parameters: p - the point
     def point_event(self, p):
         q = self.beachline_root
         if q is None:
             self.beachline_root = Arc(None, None, p, None, None)
         else:
-            while q.right and self.parabola_intersection(p.y, q.focus, q.right.focus) <= p.x:
+            while q.right and self.parabola_intersection(p.y, q.focus, q.right.focus) <= p.x: 
                 q = q.right
+                
             e_qp = Edge(q.focus, p, p.x)
             e_pq = Edge(p, q.focus, p.x)
             arc_p = Arc(q, None, p, e_qp, e_pq)
@@ -128,27 +132,38 @@ class VoronoiDiagram:
             self.add_circle_event(p, q)
             self.add_circle_event(p, arc_qr)
             self.edges.extend([e_qp, e_pq])
-
+    
+    # Handles a new circle event
+    # Parameters: e - the circle event
     def circle_event(self, e):
         arc = e.caller
         edge_new = Edge(arc.left.focus, arc.right.focus)
+        
+        # Disable the events of the two arcs adjacent to the arc of the circle event
         if arc.left.event:
             arc.left.event.active = False
         if arc.right.event:
             arc.right.event.active = False
+        
+        # Adjust beachline deleting the shrinking arc
         arc.left.edge['right'] = edge_new
         arc.right.edge['left'] = edge_new
         arc.left.right = arc.right
         arc.right.left = arc.left
+        
         self.edges.append(edge_new)
-        if not self.point_outside(e.vertex):
-            self.voronoi_vertex.append(e.vertex)
+        
+        if not self.point_outside(e.vertex): # Only add vertex if it is inside the canvas
+            self.voronoi_vertex.append(e.vertex) # This needs to come before add_circle_event as it is used there
+            
         edge_new.start = e.vertex
         arc.edge['left'].end = e.vertex
         arc.edge['right'].end = e.vertex
+        
         self.add_circle_event(e.position, arc.left)
         self.add_circle_event(e.position, arc.right)
         circle_radius = float('inf')
+        
         if arc.left.left and arc.left.right:
             focus = arc.left.focus
             circle_radius_left = ((e.vertex.x - focus.x)**2 + (e.vertex.y - focus.y)**2)**0.5
@@ -164,13 +179,17 @@ class VoronoiDiagram:
             self.maxCircle['x'] = [e.vertex.x]
             self.maxCircle['y'] = [e.vertex.y]
             self.maxCircle['radius'] = circle_radius
-
+    
+    # Test if arc is a valid circle event and add it to the event list
+    # Parameters: p - the current point, arc - the arc to test
     def add_circle_event(self, p, arc):
         if arc.left and arc.right:
             a = arc.left.focus
             b = arc.focus
             c = arc.right.focus
-            if (b.x - a.x)*(c.y - a.y) - (c.x - a.x)*(b.y - a.y) > 0:
+            
+            # Compute sine of angle between focuses. if positive then edges intersect
+            if (b.x - a.x)*(c.y - a.y) - (c.x - a.x)*(b.y - a.y) > 0: 
                 new_inters = self.edge_intersection(arc.edge['left'], arc.edge['right'])
                 if new_inters:
                     circle_radius = ((new_inters.x - arc.focus.x)**2 + (new_inters.y - arc.focus.y)**2)**0.5
@@ -179,18 +198,24 @@ class VoronoiDiagram:
                         e = Event("circle", Point(new_inters.x, event_pos), arc, new_inters)
                         arc.event = e
                         self.event_list.insert(e)
-
+    
+    # Compute the intersection of two parabolas
+    # Parameters: y - the y-coordinate of the intersection, f1 - the first focus, f2 - the second focus
+    # Returns: the x-coordinate of the intersection
     def parabola_intersection(self, y, f1, f2):
         fy_diff = f1.y - f2.y
         if fy_diff == 0:
             return (f1.x + f2.x) / 2
         fx_diff = f1.x - f2.x
-        b1md = f1.y - y
-        b2md = f2.y - y
+        b1md = f1.y - y # Difference between y-coordinate of focus 1 and directrix
+        b2md = f2.y - y # Difference between y-coordinate of focus 2 and directrix
         h1 = (-f1.x * b2md + f2.x * b1md) / fy_diff
         h2 = ((b1md * b2md * (fx_diff**2 + fy_diff**2))**0.5) / fy_diff
         return h1 + h2
-
+    
+    # Compute the intersection of two edges
+    # Parameters: e1 - the first edge, e2 - the second edge
+    # Returns: the intersection point
     def edge_intersection(self, e1, e2):
         if e1.m == float('inf'):
             x = e1.start.x
@@ -207,19 +232,27 @@ class VoronoiDiagram:
             x = (e2.q - e1.q) / mdif
             y = e1.getY(x)
             return Point(x, y)
-
+    
+    # Completes the Voronoi edges taking into account the canvas sizes
+    # Parameters: last - the last point from the event list
     def complete_segments(self, last):
         r = self.beachline_root
         while r.right:
             e = r.edge['right']
-            x = self.parabola_intersection(last.y * 1.1, e.arc['left'], e.arc['right'])
+            
+            # Check parabola intersection assuming sweepline position equal to last event increased by 10%
+            x = self.parabola_intersection(last.y * 1.1, e.arc['left'], e.arc['right']) 
+            
+            # Get the intersection point
             y = e.getY(x)
+            
+            # Find the end point 
             if (e.start.y < 0 and y < e.start.y) or \
                (e.start.x < 0 and x < e.start.x) or \
                (e.start.x > self.box_x and x > e.start.x):
-                e.end = e.start
+                e.end = e.start # If invalid make start = end so it will be deleted later
             else:
-                if e.m == 0:
+                if e.m == 0: # If edge is vertical and is connected to the beachline will end on the bottom border
                     x = 0 if x - e.start.x <= 0 else self.box_x
                     e.end = Point(x, e.start.y)
                     self.voronoi_vertex.append(e.end)
@@ -232,32 +265,36 @@ class VoronoiDiagram:
         for e in self.edges:
             if e and e.start and e.end:
                 option = int(self.point_outside(e.start)) + 2 * int(self.point_outside(e.end))
-                if option == 3:
+                if option == 3: # Both points are outside the canvas so just skip
                     continue
-                elif option == 1:
+                elif option == 1: # Start point is outside the canvas
                     y = 0 if e.start.y < e.end.y else self.box_y
                     e.start = self.edge_end(e, y)
-                elif option == 2:
+                elif option == 2: # End point is outside the canvas
                     y = 0 if e.end.y <= e.start.y else self.box_y
                     e.end = self.edge_end(e, y)
                 new_edges.append(e)
         self.edges = new_edges
-
+    
+    # Compute the end point of an edge
+    # Parameters: e - the edge, y_lim - the y-coordinate limit
     def edge_end(self, e, y_lim):
         x = min(self.box_x, max(0, e.getX(y_lim)))
         y = e.getY(x)
-        if y is None:
+        if y is None: # If y is None then the edge is vertical
             y = y_lim
         p = Point(x, y)
         self.voronoi_vertex.append(p)
         return p
-
+    
+    # Test if a point is outside the canvas
+    # Parameters: p - the point
     def point_outside(self, p):
         return p.x < 0 or p.x > self.box_x or p.y < 0 or p.y > self.box_y
 
 def main():
-    width = 600
-    height = 800
+    width = 550
+    height = 350
 
     point_list = []
 
@@ -270,9 +307,6 @@ def main():
                 x, y = float(x_str), float(y_str)
                 point_list.append(Point(x, y))
 
-        if len(point_list) < 2:
-            print("Need at least two points to compute Voronoi diagram.")
-            return
 
         voronoi = VoronoiDiagram(point_list, width, height)
         voronoi.update()
@@ -281,7 +315,7 @@ def main():
         ax.set_xlim(0, width)
         ax.set_ylim(0, height)
         ax.set_aspect('equal', adjustable='box')
-        plt.title('Voronoi Diagram from File Input, click to add points')
+        plt.title('Click to add points', loc = 'center')
 
         # Plot the edges
         for edge in voronoi.edges:
@@ -302,9 +336,8 @@ def main():
             radius = voronoi.maxCircle['radius']
             circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
             ax.add_patch(circle)
-
-
-
+            
+        # Put event for point by mouse click    
         def on_click(event):
             if event.button == MouseButton.LEFT and event.inaxes:
                 x, y = event.xdata, event.ydata
@@ -320,7 +353,7 @@ def main():
                 ax.set_xlim(0, width)
                 ax.set_ylim(0, height)
                 ax.set_aspect('equal', adjustable='box')
-                plt.title('Voronoi Diagram from File Input, click to add points')
+                ax.set_title('Click to add points')
 
                 # Plot the edges
                 if voronoi:
@@ -332,9 +365,11 @@ def main():
 
                     # Plot the largest empty circle
                     for x, y in zip(voronoi.maxCircle['x'], voronoi.maxCircle['y']):
-                        circle = plt.Circle((x, y), voronoi.maxCircle['radius'], color='blue', fill=False, linestyle='--')
-                        plt.gca().add_patch(circle)
-
+                        x_c = voronoi.maxCircle['x'][0]
+                        y_c = voronoi.maxCircle['y'][0]
+                        radius = voronoi.maxCircle['radius']
+                        circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
+                        ax.add_patch(circle)
 
                 # Plot the points
                 x_coords = [p.x for p in point_list]
@@ -342,12 +377,25 @@ def main():
                 ax.scatter(x_coords, y_coords, color='red')
 
                 plt.draw()
-
+        
+        #Put event for reset diagram
+        def on_reset(event):
+            point_list.clear()
+            ax.clear()
+            ax.set_xlim(0, width)
+            ax.set_ylim(0, height)
+            ax.set_aspect('equal', adjustable='box')
+            ax.set_title('Click to add points')
+            plt.draw()
+        
+        #Add reset button
+        resetax = plt.axes([0.8, 0.9, 0.1, 0.04])
+        reset_button = plt.Button(resetax, 'Reset', color='lightgoldenrodyellow', hovercolor='0.975')
+        reset_button.on_clicked(on_reset)
         fig.canvas.mpl_connect('button_press_event', on_click)
-        plt.show()
 
         plt.show()
-
+        
     else:
         # No file input, accept points interactively
         point_list = []
@@ -375,7 +423,7 @@ def main():
                 ax.set_xlim(0, width)
                 ax.set_ylim(0, height)
                 ax.set_aspect('equal', adjustable='box')
-                plt.title('Click to add points')
+                ax.set_title('Click to add points')
 
                 # Plot the edges
                 if voronoi:
@@ -386,15 +434,13 @@ def main():
                             ax.plot(x_values, y_values, 'k-')
 
                     # Plot the largest empty circle
-                    # if voronoi.maxCircle['x']:
-                    #     x_c = voronoi.maxCircle['x'][0]
-                    #     y_c = voronoi.maxCircle['y'][0]
-                    #     radius = voronoi.maxCircle['radius']
-                    #     circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
-                    #     ax.add_patch(circle)
                     for x, y in zip(voronoi.maxCircle['x'], voronoi.maxCircle['y']):
-                        circle = plt.Circle((x, y), voronoi.maxCircle['radius'], color='blue', fill=False, linestyle='--')
-                        plt.gca().add_patch(circle)
+                        x_c = voronoi.maxCircle['x'][0]
+                        y_c = voronoi.maxCircle['y'][0]
+                        radius = voronoi.maxCircle['radius']
+                        circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
+                        ax.add_patch(circle)
+
 
                 # Plot the points
                 x_coords = [p.x for p in point_list]
@@ -402,7 +448,21 @@ def main():
                 ax.scatter(x_coords, y_coords, color='red')
 
                 plt.draw()
-
+        
+        #Put event for reset diagram
+        def on_reset(event):
+            point_list.clear()
+            ax.clear()
+            ax.set_xlim(0, width)
+            ax.set_ylim(0, height)
+            ax.set_aspect('equal', adjustable='box')
+            ax.set_title('Click to add points')
+            plt.draw()
+        
+        #Add reset button
+        resetax = plt.axes([0.8, 0.9, 0.1, 0.04])
+        reset_button = plt.Button(resetax, 'Reset', color='lightgoldenrodyellow', hovercolor='0.975')
+        reset_button.on_clicked(on_reset)
         fig.canvas.mpl_connect('button_press_event', on_click)
         plt.show()
 
