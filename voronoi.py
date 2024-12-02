@@ -14,6 +14,25 @@ class Point:
 
 class Edge:
     def __init__(self, p1, p2, startx=None):
+        epsilon = 1e-10
+        y_count = {}
+        y_adjusted = {}
+
+        # Count occurrences of each y value
+        for p in [p1, p2]:
+            if p.y in y_count:
+                y_count[p.y] += 1
+            else:
+                y_count[p.y] = 1
+
+        for p in [p1, p2]:
+            if y_count[p.y] > 1:
+                if p.y in y_adjusted:
+                    y_adjusted[p.y] += epsilon
+                else:
+                    y_adjusted[p.y] = p.y + epsilon
+                p.y = y_adjusted[p.y]
+
         denominator = p1.y - p2.y
         if denominator == 0:
             self.m = float('inf')
