@@ -95,7 +95,8 @@ class VoronoiDiagram:
         self.reset()
         self.box_x = width
         self.box_y = height
-        self.maxCircle = {'x': [], 'y': [], 'radius': 0}
+        self.list_max_circle = []
+        self.max_circle = {'x': [], 'y': [], 'radius': 0}
 
     # Reset voronoi diagram
     def reset(self):
@@ -103,7 +104,7 @@ class VoronoiDiagram:
         self.beachline_root = None
         self.voronoi_vertex = []
         self.edges = []
-        self.maxCircle = {'x': [], 'y': [], 'radius': 0}
+        self.max_circle = {'x': [], 'y': [], 'radius': 0}
         
     # Update voronoi diagram when adding new point
     def update(self):
@@ -184,13 +185,14 @@ class VoronoiDiagram:
             focus = arc.right.focus
             circle_radius_right = ((e.vertex.x - focus.x)**2 + (e.vertex.y - focus.y)**2)**0.5
             circle_radius = min(circle_radius, circle_radius_right)
-        if self.maxCircle['radius'] == circle_radius:
-            self.maxCircle['x'].append(e.vertex.x)
-            self.maxCircle['y'].append(e.vertex.y)
-        elif self.maxCircle['radius'] < circle_radius:
-            self.maxCircle['x'] = [e.vertex.x]
-            self.maxCircle['y'] = [e.vertex.y]
-            self.maxCircle['radius'] = circle_radius
+        
+        if self.max_circle['radius'] == circle_radius:
+            self.max_circle['x'].append(e.vertex.x)
+            self.max_circle['y'].append(e.vertex.y)
+        elif self.max_circle['radius'] < circle_radius:
+            self.max_circle['x'] = [e.vertex.x]
+            self.max_circle['y'] = [e.vertex.y]
+            self.max_circle['radius'] = circle_radius
     
     # Test if arc is a valid circle event and add it to the event list
     # Parameters: p - the current point, arc - the arc to test
@@ -317,8 +319,8 @@ class VoronoiDiagram:
         return p.x < 0 or p.x > self.box_x or p.y < 0 or p.y > self.box_y
 
 def main():
-    width = 550
-    height = 350
+    width = 750
+    height = 550
 
     point_list = []
 
@@ -354,12 +356,14 @@ def main():
         ax.scatter(x_coords, y_coords, color='red')
 
         # Plot the largest empty circle
-        if voronoi.maxCircle['x']:
-            x_c = voronoi.maxCircle['x'][0]
-            y_c = voronoi.maxCircle['y'][0]
-            radius = voronoi.maxCircle['radius']
-            circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
-            ax.add_patch(circle)
+        if voronoi.max_circle['x']:
+            for i in range(len(voronoi.max_circle['x'])):
+                x_c = voronoi.max_circle['x'][i]
+                y_c = voronoi.max_circle['y'][i]
+                print(voronoi.max_circle['x'])
+                radius = voronoi.max_circle['radius']
+                circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
+                ax.add_patch(circle)
             
         # Put event for point by mouse click    
         def on_click(event):
@@ -388,10 +392,10 @@ def main():
                             ax.plot(x_values, y_values, 'k-')
 
                     # Plot the largest empty circle
-                    for x, y in zip(voronoi.maxCircle['x'], voronoi.maxCircle['y']):
-                        x_c = voronoi.maxCircle['x'][0]
-                        y_c = voronoi.maxCircle['y'][0]
-                        radius = voronoi.maxCircle['radius']
+                    for x, y in zip(voronoi.max_circle['x'], voronoi.max_circle['y']):
+                        x_c = voronoi.max_circle['x'][0]
+                        y_c = voronoi.max_circle['y'][0]
+                        radius = voronoi.max_circle['radius']
                         circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
                         ax.add_patch(circle)
 
@@ -458,10 +462,10 @@ def main():
                             ax.plot(x_values, y_values, 'k-')
 
                     # Plot the largest empty circle
-                    for x, y in zip(voronoi.maxCircle['x'], voronoi.maxCircle['y']):
-                        x_c = voronoi.maxCircle['x'][0]
-                        y_c = voronoi.maxCircle['y'][0]
-                        radius = voronoi.maxCircle['radius']
+                    for x, y in zip(voronoi.max_circle['x'], voronoi.max_circle['y']):
+                        x_c = voronoi.max_circle['x'][0]
+                        y_c = voronoi.max_circle['y'][0]
+                        radius = voronoi.max_circle['radius']
                         circle = plt.Circle((x_c, y_c), radius, color='blue', fill=False, linestyle='--')
                         ax.add_patch(circle)
 
@@ -493,4 +497,4 @@ def main():
 if __name__ == '__main__':
     main()
 
-#Credit to https://www.bitbanging.space/posts/voronoi-diagram-with-fortunes-algorithm for showing us the algorithm step by step.
+#Credit to https://www.bitbanging.space/posts/voronoi-diagram-with-fortunes-algorithm for showing us the algorithm step.
